@@ -9,11 +9,11 @@ type AppEnv = { Bindings: Env & { POC_KEY?: string }; Variables: { userId: strin
 
 const app = new Hono<AppEnv>()
 
-// workers.dev 주소로 들어오면 대표 도메인으로 보낸다 (로그인 쿠키·OAuth 주소를 하나로 유지).
-// PoC 점검 API는 예외로 두어 workers.dev에서도 호출할 수 있게 한다.
+// 대표 주소(BETTER_AUTH_URL)가 아닌 주소로 들어오면 대표 주소로 보낸다 (로그인 쿠키·OAuth 주소를 하나로 유지).
+// PoC 점검 API는 예외.
 app.use('*', async (c, next) => {
   const url = new URL(c.req.url)
-  if (url.hostname.endsWith('.workers.dev') && !url.pathname.startsWith('/api/poc/')) {
+  if (url.host !== new URL(c.env.BETTER_AUTH_URL).host && !url.pathname.startsWith('/api/poc/')) {
     return c.redirect(new URL(url.pathname + url.search, c.env.BETTER_AUTH_URL).toString(), 301)
   }
   return next()

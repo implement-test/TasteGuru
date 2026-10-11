@@ -1,0 +1,8 @@
+BETTER_AUTH_URL=http://localhost:5173
+BETTER_AUTH_SECRET=change-me-local-secret-at-least-32-chars
+# 구글 로그인을 로컬에서 쓰려면 리디렉션 URI에 http://localhost:5173/api/auth/callback/google 추가 필요
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+ADMIN_EMAIL=admin@test.local
+# 로컬 테스트 전용 이메일 가입. 운영에는 설정하지 말 것
+ENABLE_TEST_EMAIL_AUTH=1

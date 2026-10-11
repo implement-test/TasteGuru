@@ -8,9 +8,8 @@
   "workers_dev": true,
   // 대시보드에서 등록한 일반 변수(ADMIN_EMAIL 등)를 배포 때 지우지 않음
   "keep_vars": true,
-  "routes": [{ "pattern": "tasteguru.nogamenogain.com", "custom_domain": true }],
   "vars": {
-    "BETTER_AUTH_URL": "https://tasteguru.nogamenogain.com"
+    "BETTER_AUTH_URL": "https://tasteguru-poc.end0fw0rld.workers.dev"
   },
   "d1_databases": [
     {

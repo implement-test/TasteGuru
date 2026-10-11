@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="소규모 그룹이 음식 맛을 기록하고 비교하는 앱" />
+    <meta name="theme-color" content="#fff8ef" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1b1a24" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>TasteGuru</title>
+    <script>
+      // 첫 화면이 그려지기 전에 테마·글자 크기를 적용해 깜빡임을 막는다
+      try {
+        var t = localStorage.getItem('tg-theme')
+        var f = localStorage.getItem('tg-font-size')
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
+        if (f === 'sm' || f === 'lg' || f === 'xl') document.documentElement.dataset.fontSize = f
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/client/main.tsx"></script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 # TasteGuru PoC 결과 (개발 0단계, 2026-10-11)
 
-- PoC 주소: https://tasteguru.nogamenogain.com (workers.dev 주소로 접속하면 이 주소로 자동 이동)
+- PoC 주소: https://tasteguru-poc.end0fw0rld.workers.dev (2026-10-11 1단계 배포 후 `tasteguru.nogamenogain.com` 도메인은 본 앱으로 이전)
 - 코드: 저장소 `poc/` 폴더 (Hono + Better Auth + D1 + R2, Cloudflare Workers)
 - 생성한 Cloudflare 리소스: Worker `tasteguru-poc`, D1 `tasteguru-poc-db`(APAC), R2 `tasteguru-poc-media`(APAC)
 

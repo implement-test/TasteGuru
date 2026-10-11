@@ -1,0 +1,144 @@
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+@import 'tailwindcss';
+
+/* 제목·로고용 픽셀 폰트 (Galmuri, OFL-1.1) */
+@font-face {
+  font-family: 'Galmuri11';
+  src: url('../../node_modules/galmuri/dist/Galmuri11-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+
+/* tokens:light */
+:root {
+  --bg: #fff8ef;
+  --surface: #ffffff;
+  --surface-2: #fff0e3;
+  --ink: #2a2633;
+  --muted: #5f596c;
+  --line: #2a2633;
+  --peach: #ffd5c4;
+  --mint: #c9eedc;
+  --lavender: #e1d8ff;
+  --butter: #ffefa8;
+  --pink: #ffd3df;
+  --primary: #ffb3c7;
+  --accent: #6a3fd1;
+  --danger: #b42318;
+  --focus: #6a3fd1;
+  color-scheme: light;
+}
+
+/* tokens:dark */
+:root[data-theme='dark'] {
+  --bg: #1b1a24;
+  --surface: #252433;
+  --surface-2: #2e2c40;
+  --ink: #f5f2fa;
+  --muted: #bdb7cc;
+  --line: #c9c3db;
+  --peach: #5e4038;
+  --mint: #29493d;
+  --lavender: #403868;
+  --butter: #534a26;
+  --pink: #5a3343;
+  --primary: #7a3e57;
+  --accent: #c3aeff;
+  --danger: #ff9c94;
+  --focus: #c3aeff;
+  color-scheme: dark;
+}
+
+/* 시스템 설정 따름: data-theme이 light로 고정되지 않았으면 OS 다크 모드를 따른다 */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #1b1a24;
+    --surface: #252433;
+    --surface-2: #2e2c40;
+    --ink: #f5f2fa;
+    --muted: #bdb7cc;
+    --line: #c9c3db;
+    --peach: #5e4038;
+    --mint: #29493d;
+    --lavender: #403868;
+    --butter: #534a26;
+    --pink: #5a3343;
+    --primary: #7a3e57;
+    --accent: #c3aeff;
+    --danger: #ff9c94;
+    --focus: #c3aeff;
+    color-scheme: dark;
+  }
+}
+
+/* 글자 크기 4단계: 모든 크기를 rem으로 지정해 루트 크기만 바꾼다 */
+:root {
+  font-size: 16px;
+}
+:root[data-font-size='sm'] {
+  font-size: 14px;
+}
+:root[data-font-size='lg'] {
+  font-size: 18px;
+}
+:root[data-font-size='xl'] {
+  font-size: 20px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-peach: var(--peach);
+  --color-mint: var(--mint);
+  --color-lavender: var(--lavender);
+  --color-butter: var(--butter);
+  --color-pink: var(--pink);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-focus: var(--focus);
+  --font-sans: 'Pretendard Variable', Pretendard, system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  --font-pixel: 'Galmuri11', 'Pretendard Variable', system-ui, sans-serif;
+  --shadow-retro: 3px 3px 0 0 var(--line);
+  --shadow-retro-sm: 2px 2px 0 0 var(--line);
+}
+
+@layer base {
+  html {
+    background: var(--bg);
+  }
+  body {
+    @apply bg-bg font-sans text-ink antialiased;
+    min-height: 100dvh;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-pixel tracking-tight;
+  }
+  a {
+    @apply text-accent underline-offset-4;
+  }
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  /* 레트로 도트 배경 */
+  .bg-dots {
+    background-image: radial-gradient(color-mix(in srgb, var(--line) 12%, transparent) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
