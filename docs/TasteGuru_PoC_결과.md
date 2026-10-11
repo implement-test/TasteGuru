@@ -14,7 +14,7 @@
 | 초대 링크로만 가입 | ✅ 성공 (로컬) | 7개 시나리오 통과 (아래 표) |
 | 첫 관리자 이메일 지정 | ✅ 성공 (로컬) | 지정 이메일이 아니면 첫 가입 거부 |
 | 구글 로그인 실제 연결 | ⏳ 대기 | **구글 OAuth 키 발급 필요** |
-| 네이버 쇼핑 검색 API | ⏳ 대기 | **네이버 API 키 발급 필요** (코드·배포 완료) |
+| 네이버 쇼핑 검색 API | ❌ 사용 불가 | **2026-07-31 서비스 종료**, 신규 발급 불가·대체 API 없음 (아래 정정 참고) |
 | 컬리 URL 정보 추출 | ✅ 성공 | 제품명·대표 이미지·가격·브랜드 |
 | 11번가 URL 정보 추출 | ✅ 성공 | 제품명·대표 이미지·가격·브랜드 |
 | 쿠팡 URL 정보 추출 | ❌ 차단 | PC·모바일, 4가지 User-Agent 모두 403 Access Denied |
@@ -38,8 +38,10 @@ Worker가 상품 페이지 HTML을 받아 Open Graph 메타와 JSON-LD(구조화
 
 **결론**: 기존 판단 "일부 가능" 유지.
 - **컬리·11번가**: URL 붙여넣기로 자동 입력 가능
-- **쿠팡**: 서버에서 가져오기 불가 → **네이버 쇼핑 검색으로 같은 제품을 찾아 입력**하거나 직접 입력
-- **스마트스토어**: 네이버 쇼핑 검색 API가 같은 정보를 공식 제공하므로 URL 추출은 불필요
+- **쿠팡**: 서버에서 가져오기 불가 → 직접 입력, 또는 같은 제품의 컬리·11번가 URL 사용
+- **스마트스토어**: 서버에서 가져오기 불가 → 직접 입력
+
+> **정정 (2026-10-11)**: 구상 단계에서 기본 입력 경로로 잡았던 **네이버 쇼핑 검색 API는 2026-07-31에 종료**되었습니다(쇼핑·책·전문자료 검색은 대체 없이 종료, 블로그·뉴스·이미지 등 일반 검색은 NAVER API HUB로 이관되어 현재 한시적 무료). 입력 경로 재설계가 필요합니다.
 
 ## 2. 로그인·초대 링크 (로컬 검증)
 
@@ -69,16 +71,9 @@ Worker가 상품 페이지 HTML을 받아 Open Graph 메타와 JSON-LD(구조화
 
 ---
 
-## 다음에 필요한 것: 키 발급 2가지
+## 다음에 필요한 것: 구글 OAuth 키 발급
 
-### A. 네이버 검색 API 키
-
-1. https://developers.naver.com 접속 → 로그인 → **Application → 애플리케이션 등록**
-2. 애플리케이션 이름: `TasteGuru`, 사용 API: **검색**
-3. 비로그인 오픈 API 서비스 환경: **WEB 설정**, 웹 서비스 URL: `https://tasteguru-poc.end0fw0rld.workers.dev`
-4. 등록 후 **Client ID / Client Secret** 확인
-
-### B. 구글 OAuth 클라이언트
+### A. 구글 OAuth 클라이언트
 
 1. https://console.cloud.google.com → 새 프로젝트 `TasteGuru` 생성
 2. **API 및 서비스 → OAuth 동의 화면**: 사용자 유형 **외부**, 앱 이름 `TasteGuru`, 지원 이메일 입력
@@ -89,22 +84,20 @@ Worker가 상품 페이지 HTML을 받아 Open Graph 메타와 JSON-LD(구조화
    - 승인된 리디렉션 URI: `https://tasteguru-poc.end0fw0rld.workers.dev/api/auth/callback/google`
 4. **Client ID / Client Secret** 확인
 
-### C. Cloudflare에 등록 (키 값은 채팅에 붙여넣지 마세요)
+### B. Cloudflare에 등록 (키 값은 채팅에 붙여넣지 마세요)
 
 Cloudflare 대시보드 → **Workers & Pages → tasteguru-poc → Settings → Variables and Secrets → Add**
 
 | 이름 | 종류 | 값 |
 | --- | --- | --- |
-| `NAVER_CLIENT_ID` | Secret | 네이버 Client ID |
-| `NAVER_CLIENT_SECRET` | Secret | 네이버 Client Secret |
 | `GOOGLE_CLIENT_ID` | Secret | 구글 Client ID |
 | `GOOGLE_CLIENT_SECRET` | Secret | 구글 Client Secret |
 | `ADMIN_EMAIL` | Text | 관리자가 될 본인 구글 이메일 (다른 사람이 먼저 가입해 관리자가 되는 것 방지) |
 
-등록 후 알려 주시면 네이버 검색과 구글 로그인을 최종 확인하고, 결과를 이 문서와 명세에 반영합니다.
+등록 후 알려 주시면 구글 로그인을 최종 확인하고, 결과를 이 문서와 명세에 반영합니다.
 
 ## 참고: PoC 페이지 사용법
 
 - 첫 화면에서 상태 확인, 구글 로그인, 초대 링크 생성, 네이버 검색, URL 추출을 시험할 수 있음
-- 로그인 전에는 **PoC 키**를 입력해야 네이버 검색·URL 추출이 동작 (키는 별도 전달)
+- 로그인 전에는 **PoC 키**를 입력해야 URL 추출이 동작 (키는 별도 전달)
 - PoC가 끝나면 Worker·D1·R2를 삭제하거나 본 개발용으로 이름을 바꿔 재사용

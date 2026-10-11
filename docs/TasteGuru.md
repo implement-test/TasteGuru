@@ -26,7 +26,7 @@
 
 | 확인 내용 | 결과 | 설명 |
 | --- | --- | --- |
-| 쿠팡, 컬리 등 온라인 마켓에서 정보 가져오기 | 일부 가능 | PoC(2026-10-11) 결과: 컬리·11번가는 상품 URL에서 제품명·대표 이미지·가격·브랜드 자동 추출 성공(Open Graph·JSON-LD). 쿠팡은 PC·모바일, 4가지 User-Agent 모두 403 차단으로 불가. 네이버 스마트스토어 URL은 429 또는 로그인 페이지로 이동해 불가. 네이버 쇼핑 검색 API로 제품명·대표 이미지·최저가·브랜드·카테고리 제공(공식 API, 키 발급 후 최종 확인 예정). 쿠팡 상품은 네이버 쇼핑 검색 또는 직접 입력으로 대체. 영양 정보는 대부분 상세페이지 이미지 안에 있어 자동 추출 불가 |
+| 쿠팡, 컬리 등 온라인 마켓에서 정보 가져오기 | 일부 가능 | PoC(2026-10-11) 결과: 컬리·11번가는 상품 URL에서 제품명·대표 이미지·가격·브랜드 자동 추출 성공(Open Graph·JSON-LD). 쿠팡은 PC·모바일, 4가지 User-Agent 모두 403 차단으로 불가. 네이버 스마트스토어 URL은 429 또는 로그인 페이지로 이동해 불가. 네이버 쇼핑 검색 API는 2026-07-31 종료되어 신규 발급 불가(대체 API 없음). 쿠팡 상품은 직접 입력 또는 다른 쇼핑몰 URL로 대체. 영양 정보는 대부분 상세페이지 이미지 안에 있어 자동 추출 불가 |
 | 영양 정보 자동 입력 | 일부 가능 | 식약처 식품영양성분 DB(K-FIND, 공공데이터포털 Open API)로 가공식품 영양성분 조회 가능. 쇼핑몰 제품명과 DB 제품명이 정확히 일치하지 않아 자동 매칭은 불확실하므로 사용자가 검색 결과에서 직접 선택하는 방식 필요. MVP 이후 단계로 미룸 |
 | 무료 호스팅·DB로 상시 운영 | 가능 | Cloudflare Workers Paid(사용 중) 포함량 안에서 운영. Supabase 무료 플랜의 7일 비활성 일시정지 문제 없음. D1 Time Travel로 최근 30일 시점 복구 가능 |
 | Supabase 대신 Cloudflare만으로 개발 | 가능 | DB는 D1, 사진은 R2, 로그인은 Better Auth(Google), 호스팅은 Workers Static Assets, 예약 작업은 Cron Triggers로 대체. 2026-10-01~10-11 기존 사용량은 요청 약 1%, CPU 약 6%, R2 저장 약 40%(월 포함량 대비)이며 TasteGuru 추가 후에도 포함량 안으로 추가 비용 없음. R2 버킷 sf6-repository-opennext-cache가 하루 약 0.17GB씩 증가 중이라 계정 R2 무료 10GB 초과 가능성 있음 |
@@ -63,7 +63,6 @@
   - ex) 국/탕, 반찬, 음료, 주류, 아이스크림 등
 - [ ] 최대한 쉽게 음식 정보(사진포함)을 입력할 수 있어야 함
   - 쿠팡, 네이버, 컬리 등 인터넷 사이트에서 음식 대표 이미지 및 정보 가져오기
-    - 네이버 쇼핑 검색 API로 제품 검색 후 선택하면 자동 입력
     - 상품 URL 붙여넣기 시 제품명·대표 이미지·가격·브랜드 자동 추출(컬리·11번가 등), 실패 시 직접 입력
   - 음식별로 사진을 최대 5개씩 첨부 가능
     - 음식당 전체 5장(사용자별 아님)
@@ -109,8 +108,6 @@
 | Google Cloud (OAuth) | Client ID | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
 | Google Cloud (OAuth) | Client Secret | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
 | Better Auth | BETTER_AUTH_SECRET | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
-| 네이버 개발자센터 | Client ID | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
-| 네이버 개발자센터 | Client Secret | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
 | Cloudflare | API Token(배포용) | GitHub Actions Secrets | 미발급 | 미발급 |
 
 ## ⑩ 기술/도구
