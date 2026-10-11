@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tasteguru-poc",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "vars": {
+    "BETTER_AUTH_URL": "https://tasteguru-poc.end0fw0rld.workers.dev"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tasteguru-poc-db",
+      "database_id": "3fd6968b-6ae1-4a8b-8b69-217f6b4a4d4b",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [
+    { "binding": "MEDIA", "bucket_name": "tasteguru-poc-media" }
+  ]
+}
