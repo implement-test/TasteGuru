@@ -122,6 +122,30 @@ app.get('/api/poc/og', async (c) => {
   return c.json({ url: url.toString(), results })
 })
 
+// 구글 로그인 시작 URL이 올바르게 만들어지는지 점검 (실제 로그인은 브라우저에서)
+app.use('/api/poc/google-url', requireAccess)
+app.get('/api/poc/google-url', async (c) => {
+  const base = c.env.BETTER_AUTH_URL
+  const res = await createAuth(c.env).handler(
+    new Request(`${base}/api/auth/sign-in/social`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin: base },
+      body: JSON.stringify({ provider: 'google', callbackURL: '/' }),
+    }),
+  )
+  const data = await res.json<{ url?: string }>()
+  if (!data.url) return c.json({ status: res.status, data }, 502)
+  const u = new URL(data.url)
+  return c.json({
+    status: res.status,
+    host: u.host,
+    redirect_uri: u.searchParams.get('redirect_uri'),
+    scope: u.searchParams.get('scope'),
+    client_id_suffix: u.searchParams.get('client_id')?.slice(-27),
+    url: data.url,
+  })
+})
+
 app.use('/api/poc/r2', requireAccess)
 app.get('/api/poc/r2', async (c) => {
   const key = `poc/${crypto.randomUUID()}.txt`
