@@ -28,7 +28,8 @@
 | --- | --- | --- |
 | 쿠팡, 컬리 등 온라인 마켓에서 정보 가져오기 | 일부 가능 | 네이버는 공식 쇼핑 검색 API로 제품명·대표 이미지·최저가·브랜드·카테고리를 가져올 수 있음(가능). 쿠팡은 파트너스 API가 최종 승인(누적 판매 실적 조건) 이후에만 발급되고 직접 크롤링은 봇 차단·약관 문제로 불가에 가까움. 컬리는 공식 API가 없고 비공식 웹 경로만 있어 구조 변경 시 동작이 깨짐. 영양 정보는 대부분 상세페이지 이미지 안에 있어 쇼핑몰에서 자동 추출 불가. 대안: 네이버 쇼핑 검색 API를 기본 입력 경로로, 상품 URL 붙여넣기 시 Open Graph 메타(제목·이미지)를 시도하고 실패하면 직접 입력. 개발 첫 단계에서 실제 호출 PoC로 재확인 |
 | 영양 정보 자동 입력 | 일부 가능 | 식약처 식품영양성분 DB(K-FIND, 공공데이터포털 Open API)로 가공식품 영양성분 조회 가능. 쇼핑몰 제품명과 DB 제품명이 정확히 일치하지 않아 자동 매칭은 불확실하므로 사용자가 검색 결과에서 직접 선택하는 방식 필요. MVP 이후 단계로 미룸 |
-| 무료 호스팅·DB로 상시 운영 | 기타 | Supabase 무료 플랜은 7일간 활동이 없으면 프로젝트가 일시정지됨(데이터는 보존, 대시보드에서 복구). 주 1회 자동 백업 작업이 접속을 겸하도록 해 일시정지 방지. 무료 플랜에는 자동 백업이 없어 별도 백업 필요 |
+| 무료 호스팅·DB로 상시 운영 | 가능 | Cloudflare Workers Paid(사용 중) 포함량 안에서 운영. Supabase 무료 플랜의 7일 비활성 일시정지 문제 없음. D1 Time Travel로 최근 30일 시점 복구 가능 |
+| Supabase 대신 Cloudflare만으로 개발 | 가능 | DB는 D1, 사진은 R2, 로그인은 Better Auth(Google), 호스팅은 Workers Static Assets, 예약 작업은 Cron Triggers로 대체. 2026-10-01~10-11 기존 사용량은 요청 약 1%, CPU 약 6%, R2 저장 약 40%(월 포함량 대비)이며 TasteGuru 추가 후에도 포함량 안으로 추가 비용 없음. R2 버킷 sf6-repository-opennext-cache가 하루 약 0.17GB씩 증가 중이라 계정 R2 무료 10GB 초과 가능성 있음 |
 
 ## ③ 기능
 
@@ -36,10 +37,22 @@
 
 - [ ] 사용자 별로 음식에 평가를 할 수 있음
   - 맛에는 맵다, 달다, 짜다 등 다양한 항목이 있으며 일부만 점수를 매길 수도 있음
+    - 맛 항목 점수는 강도(0~5)
+    - 기본 맛 항목: 단맛, 짠맛, 매운맛, 신맛, 쓴맛, 감칠맛, 느끼함, 식감
+    - 맛 항목 추가·수정은 관리자만 가능
+  - 맛 항목과 별도로 종합 점수(별 1~5) 입력
   - 음식별로 개인 메모를 남길 수 있음
+    - 메모는 그룹 전체 공개
   - 음식의 점수는 사용자의 점수 평균로 계산
+    - 음식 점수 = 종합 점수 평균, 맛 항목은 항목별 평균
+    - 평가하지 않은 항목은 평균 계산에서 제외
+  - 1인 1평가, 다시 평가하면 덮어씀
+- [ ] 음식 종류는 완제품, 밀키트, 배달 가게 메뉴
+  - 배달 가게 메뉴는 가게명 입력
 - [ ] 사용자는 각각 계정으로 로그인
   - 구글 인증으로 로그인
+  - 그룹은 1개만 운영
+  - 초대 링크로만 가입 가능, 첫 가입자가 관리자
 - [ ] 개별 음식을 묶어서 비교하는 기능
   - 예를 들면 '고기 만두 비교' 처럼 특정 주제로 여러 음식을 동시에 비교 가능
   - 이미 있는 음식이면 기존 평점을 가져오고, 새로운 음식을 추가할 수도 있음
@@ -51,6 +64,7 @@
     - 네이버 쇼핑 검색 API로 제품 검색 후 선택하면 자동 입력
     - 상품 URL 붙여넣기 시 제목·대표 이미지 자동 추출 시도, 실패 시 직접 입력
   - 음식별로 사진을 최대 5개씩 첨부 가능
+    - 음식당 전체 5장(사용자별 아님)
 - [ ] 업데이트 내역 화면
   - 버전·날짜·변경 사항 목록
 
@@ -82,7 +96,7 @@
 
 - **저장 장소**: 클라우드 DB
 - **데이터 출처**: 직접 입력, 웹 크롤링
-- **백업/내보내기**: 수동 내보내기(CSV·JSON) + 주 1회 자동 백업
+- **백업/내보내기**: 수동 내보내기(CSV·JSON) + D1 Time Travel(30일) + 주 1회 자동 백업(R2)
 
 ## ⑨ 외부 연동
 
@@ -90,13 +104,12 @@
 
 | 서비스 | 키 이름 | 저장 위치 | 발급일 | 만료일 |
 | --- | --- | --- | --- | --- |
-| Google Cloud (OAuth) | Client ID | Supabase Auth 설정 | 미발급 | 미발급 |
-| Google Cloud (OAuth) | Client Secret | Supabase Auth 설정 | 미발급 | 미발급 |
-| Supabase | Project URL | Vercel 환경 변수, .env.local | 미발급 | 미발급 |
-| Supabase | Publishable key | Vercel 환경 변수, .env.local | 미발급 | 미발급 |
-| Supabase | Secret key | Vercel 환경 변수(서버 전용), GitHub Actions Secrets | 미발급 | 미발급 |
-| 네이버 개발자센터 | Client ID | Vercel 환경 변수(서버 전용), .env.local | 미발급 | 미발급 |
-| 네이버 개발자센터 | Client Secret | Vercel 환경 변수(서버 전용), .env.local | 미발급 | 미발급 |
+| Google Cloud (OAuth) | Client ID | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
+| Google Cloud (OAuth) | Client Secret | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
+| Better Auth | BETTER_AUTH_SECRET | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
+| 네이버 개발자센터 | Client ID | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
+| 네이버 개발자센터 | Client Secret | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
+| Cloudflare | API Token(배포용) | GitHub Actions Secrets | 미발급 | 미발급 |
 
 ## ⑩ 기술/도구
 
@@ -112,9 +125,12 @@
 
 | 구분 | 선택 |
 | --- | --- |
-| 프레임워크 | Next.js (App Router) + TypeScript |
-| DB·인증·파일 저장 | Supabase (PostgreSQL, Google OAuth, Storage) |
-| 호스팅 | Vercel (Hobby) |
+| 화면 | React + Vite (SPA) + TypeScript |
+| API | Hono |
+| DB | Cloudflare D1 + Drizzle ORM |
+| 인증 | Better Auth (Google) |
+| 파일 저장 | Cloudflare R2 |
+| 호스팅 | Cloudflare Workers + Static Assets (Workers Paid) |
+| 예약 작업·백업 | Cloudflare Cron Triggers, D1 Time Travel |
 | UI | shadcn/ui + Tailwind CSS |
 | 차트 | Recharts |
-| 백업 자동화 | GitHub Actions |
