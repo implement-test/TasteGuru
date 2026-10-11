@@ -1,6 +1,6 @@
 # TasteGuru PoC 결과 (개발 0단계, 2026-10-11)
 
-- PoC 주소: https://tasteguru-poc.end0fw0rld.workers.dev
+- PoC 주소: https://tasteguru.nogamenogain.com (workers.dev 주소로 접속하면 이 주소로 자동 이동)
 - 코드: 저장소 `poc/` 폴더 (Hono + Better Auth + D1 + R2, Cloudflare Workers)
 - 생성한 Cloudflare 리소스: Worker `tasteguru-poc`, D1 `tasteguru-poc-db`(APAC), R2 `tasteguru-poc-media`(APAC)
 
@@ -80,8 +80,8 @@ Worker가 상품 페이지 HTML을 받아 Open Graph 메타와 JSON-LD(구조화
    - 테스트 모드로 두면 **테스트 사용자로 등록한 계정(최대 100명)만** 로그인 가능 → 지인 10명이면 테스트 모드로도 충분하지만, 초대할 때마다 이메일 등록이 필요. 번거로우면 **게시(프로덕션)** 로 전환(이메일·프로필 같은 기본 범위만 쓰면 보통 별도 심사 없이 전환 가능)
 3. **사용자 인증 정보 → 사용자 인증 정보 만들기 → OAuth 클라이언트 ID**
    - 애플리케이션 유형: **웹 애플리케이션**
-   - 승인된 JavaScript 원본: `https://tasteguru-poc.end0fw0rld.workers.dev`
-   - 승인된 리디렉션 URI: `https://tasteguru-poc.end0fw0rld.workers.dev/api/auth/callback/google`
+   - 승인된 JavaScript 원본: `https://tasteguru.nogamenogain.com`
+   - 승인된 리디렉션 URI: `https://tasteguru.nogamenogain.com/api/auth/callback/google`
 4. **Client ID / Client Secret** 확인
 
 ### B. Cloudflare에 등록 (키 값은 채팅에 붙여넣지 마세요)

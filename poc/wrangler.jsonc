@@ -5,8 +5,10 @@
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  "workers_dev": true,
+  "routes": [{ "pattern": "tasteguru.nogamenogain.com", "custom_domain": true }],
   "vars": {
-    "BETTER_AUTH_URL": "https://tasteguru-poc.end0fw0rld.workers.dev"
+    "BETTER_AUTH_URL": "https://tasteguru.nogamenogain.com"
   },
   "d1_databases": [
     {

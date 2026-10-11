@@ -2,7 +2,7 @@
 
 개발 0단계 기술 검증용 Cloudflare Worker. 결과는 `../docs/TasteGuru_PoC_결과.md` 참고.
 
-- 배포 주소: https://tasteguru-poc.end0fw0rld.workers.dev
+- 배포 주소: https://tasteguru.nogamenogain.com (workers.dev 주소는 이 주소로 301 이동, `/api/poc/*` 점검 API만 예외)
 - 구성: Hono(API) · Better Auth(Google 로그인, 초대 링크 가입 제한) · D1 · R2
 
 ## 명령
