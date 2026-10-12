@@ -4,6 +4,7 @@ import { createAuth, INVITE_COOKIE } from './auth'
 import type { Env } from './env'
 import { fetchOg, isAllowedUrl, USER_AGENTS, type UaKey } from './og'
 import { renderPage } from './page'
+import { ImportError, importFromUrl } from '../../src/worker/import/url'
 
 type AppEnv = { Bindings: Env & { POC_KEY?: string }; Variables: { userId: string | null } }
 
@@ -144,6 +145,17 @@ app.get('/api/poc/google-url', async (c) => {
     client_id_suffix: u.searchParams.get('client_id')?.slice(-27),
     url: data.url,
   })
+})
+
+// 본 앱의 URL 가져오기 로직을 실제 쇼핑몰 페이지로 점검
+app.use('/api/poc/import', requireAccess)
+app.get('/api/poc/import', async (c) => {
+  try {
+    return c.json({ ok: true, product: await importFromUrl(c.req.query('url')) })
+  } catch (e) {
+    if (e instanceof ImportError) return c.json({ ok: false, code: e.code, message: e.message })
+    throw e
+  }
 })
 
 app.use('/api/poc/r2', requireAccess)

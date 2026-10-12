@@ -10,6 +10,8 @@ export interface Me {
 
 export interface AppConfig {
   googleEnabled: boolean
+  /** API 상품 검색 사용 가능 여부 (초안: 키가 없으면 false) */
+  productSearch: { enabled: boolean; label: string | null }
 }
 
 export type InviteStatus = 'active' | 'used' | 'expired'

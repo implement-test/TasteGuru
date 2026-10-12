@@ -7,6 +7,9 @@ import { RequireAdmin, RequireAuth } from './components/RequireAuth'
 import { AdminPage } from './pages/AdminPage'
 import { ChangelogPage } from './pages/ChangelogPage'
 import { ComingSoonPage } from './pages/ComingSoonPage'
+import { FoodDetailPage } from './pages/FoodDetailPage'
+import { FoodEditPage } from './pages/FoodEditPage'
+import { FoodNewPage } from './pages/FoodNewPage'
 import { HomePage } from './pages/HomePage'
 import { InvitePage } from './pages/InvitePage'
 import { LoginPage } from './pages/LoginPage'
@@ -26,7 +29,9 @@ const router = createBrowserRouter([
         element: <AppShell />,
         children: [
           { index: true, element: <HomePage /> },
-          { path: 'foods/new', element: <ComingSoonPage title="음식 추가" emoji="🍳" phase="2단계(음식·평가)" /> },
+          { path: 'foods/new', element: <FoodNewPage /> },
+          { path: 'foods/:id', element: <FoodDetailPage /> },
+          { path: 'foods/:id/edit', element: <FoodEditPage /> },
           { path: 'compare', element: <ComingSoonPage title="묶음 비교" emoji="⚖️" phase="4단계(묶음 비교)" /> },
           { path: 'my-ratings', element: <ComingSoonPage title="내 평가" emoji="⭐" phase="3단계(태그·목록)" /> },
           { path: 'settings', element: <SettingsPage /> },

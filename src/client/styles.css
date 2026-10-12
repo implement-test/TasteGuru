@@ -26,6 +26,7 @@
   --accent: #6a3fd1;
   --danger: #b42318;
   --focus: #6a3fd1;
+  --star: #f5b301;
   color-scheme: light;
 }
 
@@ -46,6 +47,7 @@
   --accent: #c3aeff;
   --danger: #ff9c94;
   --focus: #c3aeff;
+  --star: #f5b301;
   color-scheme: dark;
 }
 
@@ -67,6 +69,7 @@
     --accent: #c3aeff;
     --danger: #ff9c94;
     --focus: #c3aeff;
+    --star: #f5b301;
     color-scheme: dark;
   }
 }
@@ -101,6 +104,7 @@
   --color-accent: var(--accent);
   --color-danger: var(--danger);
   --color-focus: var(--focus);
+  --color-star: var(--star);
   --font-sans: 'Pretendard Variable', Pretendard, system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   --font-pixel: 'Galmuri11', 'Pretendard Variable', system-ui, sans-serif;
   --shadow-retro: 3px 3px 0 0 var(--line);
@@ -114,6 +118,9 @@
   body {
     @apply bg-bg font-sans text-ink antialiased;
     min-height: 100dvh;
+    /* 한국어는 단어 중간에서 줄을 바꾸지 않는다 */
+    word-break: keep-all;
+    overflow-wrap: anywhere;
   }
   h1,
   h2,

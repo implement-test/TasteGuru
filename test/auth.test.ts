@@ -119,6 +119,6 @@ describe('내 정보', () => {
 
 describe('설정 API', () => {
   it('구글 키가 없으면 googleEnabled=false', async () => {
-    expect(await (await call('/api/config')).json()).toEqual({ googleEnabled: false })
+    expect(await (await call('/api/config')).json()).toEqual({ googleEnabled: false, productSearch: { enabled: false, label: null } })
   })
 })

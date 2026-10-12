@@ -8,6 +8,20 @@
       "when": 1791731073416,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1791763213408,
+      "tag": "0001_foods_ratings",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1791763214219,
+      "tag": "0002_seed_taste_attributes",
+      "breakpoints": true
     }
   ]
 }

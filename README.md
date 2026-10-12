@@ -3,7 +3,7 @@
 소규모 그룹(10명 이하)이 음식의 맛을 항목별(단맛·짠맛·매운맛 등 강도 + 종합 점수)로 기록하고 비교하는 웹 앱.
 
 - 서비스 주소: https://tasteguru.nogamenogain.com
-- 기획·설계 문서: [`docs/`](docs/) (명세 `TasteGuru.md`, 세부 구상, Cloudflare 분석, PoC 결과)
+- 기획·설계 문서: [`docs/`](docs/) (명세 `TasteGuru.md`, 세부 구상, Cloudflare 분석, PoC 결과, API 입력 초안)
 - 업데이트 내역: [`CHANGELOG.md`](CHANGELOG.md) (앱의 "업데이트 내역" 화면에 그대로 표시)
 
 ## 기술 구성
@@ -24,6 +24,8 @@ Cloudflare Workers 하나에 화면과 API를 함께 배포한다.
 ```
 src/
   worker/        Hono API, Better Auth 설정, Drizzle 스키마(db/schema.ts)
+    routes/      foods(음식·평가·사진), admin, imports(URL 가져오기·API 검색 자리), images(R2 사진 제공)
+    import/      url.ts(상품 URL → 이름·사진·가격·브랜드), providers.ts(API 검색 공급자 초안)
   client/        React 화면 (pages, components, lib)
   shared/        화면·서버 공용 타입과 함수 (changelog 파서 등)
 migrations/      D1 마이그레이션 (drizzle-kit이 생성)
