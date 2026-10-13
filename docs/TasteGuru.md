@@ -30,7 +30,7 @@
 | 영양 정보 자동 입력 | 일부 가능 | 식약처 식품영양성분 DB(K-FIND, 공공데이터포털 Open API)로 가공식품 영양성분 조회 가능. 쇼핑몰 제품명과 DB 제품명이 정확히 일치하지 않아 자동 매칭은 불확실하므로 사용자가 검색 결과에서 직접 선택하는 방식 필요. MVP 이후 단계로 미룸 |
 | 무료 호스팅·DB로 상시 운영 | 가능 | Cloudflare Workers Paid(사용 중) 포함량 안에서 운영. Supabase 무료 플랜의 7일 비활성 일시정지 문제 없음. D1 Time Travel로 최근 30일 시점 복구 가능 |
 | Supabase 대신 Cloudflare만으로 개발 | 가능 | DB는 D1, 사진은 R2, 로그인은 Better Auth(Google), 호스팅은 Workers Static Assets, 예약 작업은 Cron Triggers로 대체. 2026-10-01~10-11 기존 사용량은 요청 약 1%, CPU 약 6%, R2 저장 약 40%(월 포함량 대비)이며 TasteGuru 추가 후에도 포함량 안으로 추가 비용 없음. R2 버킷 sf6-repository-opennext-cache가 하루 약 0.17GB씩 증가 중이라 계정 R2 무료 10GB 초과 가능성 있음 |
-| API를 통한 상품 정보 입력 | 기타 | 네이버 쇼핑 검색 API 종료로 상품명·가격 검색 API 없음. NAVER API HUB 이미지 검색으로 사진·이름 후보를 찾는 "상품 검색" 탭으로 구현(v0.2.1). 가격·브랜드는 직접 입력 |
+| API를 통한 상품 정보 입력 | 기타 | 네이버 쇼핑 검색 API 종료로 상품명·가격 검색 API 없음. NAVER API HUB 이미지 검색으로 구현(v0.2.1)했으나 검색 API 특약(검색결과·파생물 저장 금지)과 맞지 않아 v0.2.3에서 제거. 대체 공급자 검토 중 |
 
 ## ③ 기능
 
@@ -110,8 +110,8 @@
 | Google Cloud (OAuth) | Client ID | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
 | Google Cloud (OAuth) | Client Secret | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
 | Better Auth | BETTER_AUTH_SECRET | Workers Secrets, .dev.vars(로컬) | 미발급 | 미발급 |
-| NAVER API HUB | Client ID | Workers Secrets (NAVER_HUB_CLIENT_ID 또는 NAVER_CLIENT_ID) | 2026-10-13 | - |
-| NAVER API HUB | Client Secret | Workers Secrets (NAVER_HUB_CLIENT_SECRET 또는 NAVER_CLIENT_SECRET) | 2026-10-13 | - |
+| NAVER API HUB | Client ID | 사용 중지 (2026-10-13 Workers Secret 삭제) | 2026-10-13 | - |
+| NAVER API HUB | Client Secret | 사용 중지 (2026-10-13 Workers Secret 삭제) | 2026-10-13 | - |
 | Cloudflare | API Token(배포용) | GitHub Actions Secrets | 미발급 | 미발급 |
 
 ## ⑩ 기술/도구

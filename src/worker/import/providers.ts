@@ -1,7 +1,12 @@
 // ── API를 통한 상품 검색 입력 ──
-// 상품명으로 검색해 후보를 고르면 이름·사진을 채운다. 설계: docs/TasteGuru_API입력_초안.md
+// 상품명으로 검색해 후보를 고르면 이름·사진을 채우는 기능의 연결부.
+// 지금은 사용 가능한 공급자가 없어 /api/import/search는 501, 화면의 "상품 검색" 탭은 "준비 중"이다.
+//
+// NAVER API HUB 검색 API는 v0.2.1~v0.2.2에서 썼다가 v0.2.3에서 제거했다.
+// 검색 API 개별 특약(2026-09-20 시행)이 검색결과·파생물의 저장·캐싱(2.3), 가공 노출(2.2),
+// 검색결과 제공 외 목적 사용(2.1)을 금지해 "검색 → 골라서 음식 정보로 저장" 흐름과 맞지 않는다.
+// 새 공급자를 붙일 때는 결과를 저장해도 되는 데이터인지 약관부터 확인한다. 기록: docs/TasteGuru_API입력_초안.md
 import type { ProductCandidate } from '../../shared/food'
-import { cleanTitle } from './url'
 
 export interface ProductSearchProvider {
   /** 공급자 식별자 (설정·로그용) */
@@ -16,108 +21,7 @@ export interface ProductSearchProvider {
 
 export class SearchError extends Error {}
 
-const NAVER_HUB_IMAGE_URL = 'https://naverapihub.apigw.ntruss.com/search/v1/image'
-const SEARCH_TIMEOUT_MS = 8000
-const SEARCH_DISPLAY = 20
-export const SEARCH_MAX_RESULTS = 12
-
-/** NAVER API HUB 키. NAVER_HUB_* 이름을 우선하고, NAVER_* 이름도 받는다 */
-export function naverHubKeys(env: Env): { id: string; secret: string } | null {
-  const id = env.NAVER_HUB_CLIENT_ID || env.NAVER_CLIENT_ID
-  const secret = env.NAVER_HUB_CLIENT_SECRET || env.NAVER_CLIENT_SECRET
-  return id && secret ? { id, secret } : null
-}
-
-interface NaverImageItem {
-  title?: string
-  link?: string
-  thumbnail?: string
-  sizeheight?: string
-  sizewidth?: string
-}
-
-const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", '#39': "'" }
-
-/** 검색 결과 제목: <b> 강조와 HTML 엔티티를 걷어낸다 */
-export function plainTitle(raw: string): string {
-  return raw
-    .replace(/<\/?b>/g, '')
-    .replace(/&(amp|lt|gt|quot|apos|#39);/g, (_, e: string) => ENTITIES[e])
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-/** http 이미지 주소는 https로 (https 화면에서 섞인 콘텐츠로 막히지 않게) */
-function toHttps(raw: string | undefined): string | null {
-  if (!raw) return null
-  try {
-    const u = new URL(raw)
-    if (u.protocol === 'http:') u.protocol = 'https:'
-    return u.protocol === 'https:' ? u.toString() : null
-  } catch {
-    return null
-  }
-}
-
-/** 이미지 검색 결과 → 상품 후보. "상품명 : 쇼핑몰" 제목에서 쇼핑몰 이름을 떼어 낸다 */
-export function toCandidates(items: NaverImageItem[], provider: string): ProductCandidate[] {
-  const seen = new Set<string>()
-  const out: ProductCandidate[] = []
-  for (const it of items) {
-    const image = toHttps(it.link)
-    if (!image || seen.has(image)) continue
-    seen.add(image)
-    const title = plainTitle(it.title ?? '')
-    const mall = title.match(/\s+:\s+([^:]{1,30})$/u)
-    const { name, brand } = cleanTitle(mall ? title.slice(0, mall.index) : title, mall?.[1].trim() ?? null, null)
-    out.push({
-      name,
-      brand,
-      image,
-      thumbnail: toHttps(it.thumbnail) ?? image,
-      price: null,
-      url: null,
-      provider,
-    })
-    if (out.length >= SEARCH_MAX_RESULTS) break
-  }
-  return out
-}
-
-/**
- * NAVER API HUB 이미지 검색.
- * - 네이버 쇼핑 검색 API는 2026-07-31 종료 → 이미지 검색으로 "대표 사진 + 이름 초안" 후보를 찾는다
- * - 인증: X-NCP-APIGW-API-KEY-ID / X-NCP-APIGW-API-KEY (네이버 클라우드 플랫폼 Application 키)
- * - 가격·브랜드는 오지 않는다
- */
-export const naverApiHubProvider: ProductSearchProvider = {
-  id: 'naver-api-hub',
-  label: '네이버 검색',
-  isEnabled: (env) => !!naverHubKeys(env),
-  async search(query, env) {
-    const keys = naverHubKeys(env)
-    if (!keys) throw new SearchError('naver keys not configured')
-    const url = `${NAVER_HUB_IMAGE_URL}?${new URLSearchParams({ query, display: String(SEARCH_DISPLAY), sort: 'sim', filter: 'large' })}`
-    let res: Response
-    try {
-      res = await fetch(url, {
-        headers: { 'X-NCP-APIGW-API-KEY-ID': keys.id, 'X-NCP-APIGW-API-KEY': keys.secret },
-        signal: AbortSignal.timeout(SEARCH_TIMEOUT_MS),
-      })
-    } catch (e) {
-      throw new SearchError(`naver request failed: ${e instanceof Error ? e.message : String(e)}`)
-    }
-    if (!res.ok) {
-      const body = await res.text().catch(() => '')
-      throw new SearchError(`naver ${res.status}: ${body.slice(0, 200)}`)
-    }
-    const data = await res.json<{ items?: NaverImageItem[] }>().catch(() => null)
-    if (!data || !Array.isArray(data.items)) throw new SearchError('naver response has no items')
-    return toCandidates(data.items, this.id)
-  },
-}
-
-export const PROVIDERS: ProductSearchProvider[] = [naverApiHubProvider]
+export const PROVIDERS: ProductSearchProvider[] = []
 
 export function activeProvider(env: Env): ProductSearchProvider | null {
   return PROVIDERS.find((p) => p.isEnabled(env)) ?? null
