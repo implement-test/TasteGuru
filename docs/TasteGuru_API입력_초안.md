@@ -1,7 +1,6 @@
-# TasteGuru – API를 통한 상품 입력 (초안, 2026-10-12)
+# TasteGuru – API를 통한 상품 입력 (2026-10-12 초안, 2026-10-13 구현)
 
-> 상태: **연결부만 구현, 실제 연동은 미구현.** NAVER API HUB 가입 오류로 키를 아직 받지 못함.
-> 키가 준비되면 이 문서의 "구현 순서"대로 진행한다.
+> 상태: **v0.2.1에서 NAVER API HUB 이미지 검색으로 구현.** 아래 2~5절은 초안 당시 기록, 실제 연동 내용은 "7. 구현 결과" 참고.
 
 ## 1. 목적
 
@@ -55,3 +54,26 @@ URL 붙여넣기가 안 되는 쇼핑몰(쿠팡, 네이버 스마트스토어 �
 - NAVER API HUB 가입 오류 내용 (오류 문구를 알려 주면 원인 확인을 돕겠음)
 - 이미지 검색 결과를 "대표 사진"으로 저장해도 되는지 약관 확인 — 기본은 쇼핑몰 이미지처럼 **주소만 저장(핫링크)**
 - 바코드 스캔을 함께 넣을지 (휴대폰 카메라 + 식약처 바코드 API)
+
+## 7. 구현 결과 (v0.2.1, 2026-10-13)
+
+실제 키로 확인한 내용:
+
+| 항목 | 내용 |
+| --- | --- |
+| 키 | 네이버 클라우드 플랫폼 → NAVER API HUB Application 키 (Client ID 10자, Secret 40자). 개발자센터(`openapi.naver.com`) 키와 다름 |
+| 주소 | `GET https://naverapihub.apigw.ntruss.com/search/v1/image?query=&display=&sort=&filter=` (블로그 `/blog`, 뉴스 `/news` 등도 같은 형식) |
+| 인증 헤더 | `X-NCP-APIGW-API-KEY-ID`(Client ID), `X-NCP-APIGW-API-KEY`(Client Secret) |
+| API 사용 설정 | Application에서 체크한 API만 사용 가능. 안 켠 API는 401 "요청한 API는 이 Application에서 활성화되어 있지 않습니다." |
+| 응답 | 개발자센터 검색 API와 같음: `items[].title`(`<b>` 강조 포함), `link`(원본 사진), `thumbnail`(150px), `sizewidth`, `sizeheight` |
+| 제목 | 쇼핑몰 상품이면 대개 "상품명 : 쇼핑몰" 형식 → 쇼핑몰 이름을 떼어 이름 초안으로 사용 |
+
+구현:
+
+- `src/worker/import/providers.ts` `naverApiHubProvider`: 20건 요청 → 사진 주소 중복 제거 후 최대 12건, http 사진은 https로, 8초 시간 제한
+- 키 이름: `NAVER_HUB_CLIENT_ID`/`NAVER_HUB_CLIENT_SECRET` 우선, `NAVER_CLIENT_ID`/`NAVER_CLIENT_SECRET`도 인식
+- `GET /api/import/search?q=`: 키 없음 501, 네이버 오류·시간 초과 502 `search_failed`
+- 음식 추가 → "상품 검색" 탭: 검색 → 사진 후보 고르기 → 이름·대표 사진 채움 → 확인 후 저장 (`source: 'api'`)
+- 테스트: `test/search.test.ts` (변환, 호출 주소·헤더, 오류 처리, 501)
+
+남은 일: 같은 검색어 하루 캐시(유료화 대비), 이미지 검색 결과 사진 저장 관련 약관 확인

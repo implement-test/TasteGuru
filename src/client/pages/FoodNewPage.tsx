@@ -11,7 +11,7 @@ import { Segmented } from '@/client/components/ui/segmented'
 import { api, HttpError, queryKeys, uploadImage, useConfig } from '@/client/lib/api'
 import { cn } from '@/client/lib/cn'
 import { compressImage } from '@/client/lib/image'
-import { FOOD_KIND_LABEL, MAX_IMAGES, validateFoodInput, type FoodKind, type ImportedProduct } from '@/shared/food'
+import { FOOD_KIND_LABEL, MAX_IMAGES, validateFoodInput, type FoodKind, type ImportedProduct, type ProductCandidate } from '@/shared/food'
 
 type Mode = 'url' | 'manual' | 'search'
 
@@ -75,6 +75,8 @@ export function FoodNewPage() {
   const [mode, setMode] = useState<Mode>('url')
   const [link, setLink] = useState('')
   const [imported, setImported] = useState<ImportedProduct | null>(null)
+  const [searchQ, setSearchQ] = useState('')
+  const [picked, setPicked] = useState<ProductCandidate | null>(null)
   const [fields, setFields] = useState<FoodFieldValues>(emptyFields)
   const [photos, setPhotos] = useState<Photo[]>([])
   const [formError, setFormError] = useState<string | null>(null)
@@ -100,6 +102,20 @@ export function FoodNewPage() {
     },
   })
 
+  const searchProducts = useMutation({
+    mutationFn: (q: string) => api<{ provider: string; items: ProductCandidate[] }>(`/api/import/search?q=${encodeURIComponent(q)}`),
+  })
+
+  const pickCandidate = (c: ProductCandidate) => {
+    setPicked(c)
+    setFields((prev) => ({ ...prev, name: c.name, brand: c.brand ?? prev.brand }))
+    // 이전에 고른 후보 사진은 빼고 새로 고른 사진을 대표로
+    setPhotos((prev) => {
+      const rest = prev.filter((x) => x.src !== picked?.image && x.src !== c.image)
+      return c.image ? [{ key: c.image, src: c.image }, ...rest].slice(0, MAX_IMAGES) : rest
+    })
+  }
+
   const addFiles = (files: FileList | null) => {
     if (!files) return
     const room = MAX_IMAGES - photos.length
@@ -119,7 +135,7 @@ export function FoodNewPage() {
     mutationFn: async () => {
       const body = {
         ...toFoodBody(kind, fields),
-        source: imported ? 'url' : 'manual',
+        source: mode === 'search' && picked ? 'api' : imported ? 'url' : 'manual',
         externalImages: photos.filter((p) => !p.file).map((p) => p.src),
       }
       const check = validateFoodInput(body)
@@ -146,13 +162,18 @@ export function FoodNewPage() {
     e.preventDefault()
     if (link.trim()) importUrl.mutate(link.trim())
   }
+  const onSearch = (e: FormEvent) => {
+    e.preventDefault()
+    if (searchQ.trim()) searchProducts.mutate(searchQ.trim())
+  }
   const onSave = (e: FormEvent) => {
     e.preventDefault()
     setFormError(null)
     save.mutate()
   }
 
-  const showForm = mode === 'manual' || (mode === 'url' && (imported || importUrl.isError))
+  const showForm = mode === 'manual' || (mode === 'url' && (imported || importUrl.isError)) || (mode === 'search' && (picked || searchProducts.isError))
+  const candidates = searchProducts.data?.items
 
   return (
     <>
@@ -192,7 +213,65 @@ export function FoodNewPage() {
             </form>
           )}
 
-          {mode === 'search' && <p className="text-muted">상품 검색은 준비 중이에요.</p>}
+          {mode === 'search' && (
+            <div className="space-y-3">
+              <form onSubmit={onSearch} className="space-y-2">
+                <label htmlFor="product-search" className="block font-semibold">
+                  상품 이름
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    id="product-search"
+                    type="search"
+                    value={searchQ}
+                    onChange={(e) => setSearchQ(e.target.value)}
+                    placeholder="예: 신라면, 비비고 왕교자"
+                    maxLength={50}
+                    aria-describedby="search-help"
+                  />
+                  <Button type="submit" disabled={!searchQ.trim() || searchProducts.isPending}>
+                    {searchProducts.isPending ? '찾는 중…' : '검색'}
+                  </Button>
+                </div>
+                <p id="search-help" className="text-sm text-muted" aria-live="polite">
+                  {searchProducts.isError ? (
+                    <span className="text-danger">{searchProducts.error instanceof HttpError ? searchProducts.error.message : '검색하지 못했어요. 직접 입력해 주세요.'}</span>
+                  ) : candidates && !candidates.length ? (
+                    '검색 결과가 없어요. 다른 이름으로 찾거나 직접 입력해 주세요.'
+                  ) : picked ? (
+                    '사진과 이름을 채웠어요. 내용을 확인하고 가격·브랜드는 직접 입력해 주세요.'
+                  ) : candidates ? (
+                    '맞는 상품 사진을 골라 주세요.'
+                  ) : (
+                    `${config?.productSearch.label ?? '검색'}으로 상품 사진과 이름을 찾아요.`
+                  )}
+                </p>
+              </form>
+              {!!candidates?.length && (
+                <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4" aria-label="검색 결과">
+                  {candidates.map((c, i) => {
+                    const selected = picked?.image === c.image
+                    return (
+                      <li key={c.image ?? i}>
+                        <button
+                          type="button"
+                          onClick={() => pickCandidate(c)}
+                          aria-pressed={selected}
+                          className={cn(
+                            'flex h-full w-full flex-col gap-1 rounded-xl border-2 border-line p-1 text-left text-xs',
+                            selected ? 'bg-primary shadow-retro-sm' : 'bg-surface',
+                          )}
+                        >
+                          <FoodImg src={c.thumbnail ?? c.image} alt="" className="aspect-square w-full rounded-lg" />
+                          <span className="line-clamp-2">{c.name || '이름 없음'}</span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          )}
         </Card>
 
         {showForm && (

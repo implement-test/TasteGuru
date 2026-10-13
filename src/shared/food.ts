@@ -201,11 +201,14 @@ export function validateRatingInput(raw: unknown, attributeIds: string[]): Valid
   return { ok: true, value: { overall, scores, memo } }
 }
 
-/** API 검색 결과 후보 (초안) */
+/** API 검색 결과 후보 */
 export interface ProductCandidate {
   name: string
   brand: string | null
+  /** 원본 사진 주소 (저장용) */
   image: string | null
+  /** 작은 미리보기 주소 (후보 목록용) */
+  thumbnail: string | null
   price: number | null
   url: string | null
   provider: string
