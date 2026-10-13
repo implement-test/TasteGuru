@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Camera, Link2, PencilLine, Search, X } from 'lucide-react'
+import { Camera, Link2, PencilLine, X } from 'lucide-react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { emptyFields, FoodFields, toFoodBody, type FoodFieldValues } from '@/client/components/food/FoodFields'
@@ -8,12 +8,12 @@ import { Button } from '@/client/components/ui/button'
 import { Card } from '@/client/components/ui/card'
 import { Input } from '@/client/components/ui/input'
 import { Segmented } from '@/client/components/ui/segmented'
-import { api, HttpError, queryKeys, uploadImage, useConfig } from '@/client/lib/api'
+import { api, HttpError, queryKeys, uploadImage } from '@/client/lib/api'
 import { cn } from '@/client/lib/cn'
 import { compressImage } from '@/client/lib/image'
 import { FOOD_KIND_LABEL, MAX_IMAGES, validateFoodInput, type FoodKind, type ImportedProduct } from '@/shared/food'
 
-type Mode = 'url' | 'manual' | 'search'
+type Mode = 'url' | 'manual'
 
 interface Photo {
   key: string
@@ -37,14 +37,13 @@ function useSimilarFoods(name: string) {
   })
 }
 
-function ModeTabs({ mode, onChange, kind, searchEnabled }: { mode: Mode; onChange: (m: Mode) => void; kind: FoodKind; searchEnabled: boolean }) {
+function ModeTabs({ mode, onChange, kind }: { mode: Mode; onChange: (m: Mode) => void; kind: FoodKind }) {
   const tabs: { id: Mode; label: string; icon: typeof Link2; disabled?: boolean; note?: string }[] = [
     { id: 'url', label: '링크 붙여넣기', icon: Link2, disabled: kind === 'delivery', note: kind === 'delivery' ? '배달 메뉴는 직접 입력해 주세요' : undefined },
     { id: 'manual', label: '직접 입력', icon: PencilLine },
-    { id: 'search', label: '상품 검색', icon: Search, disabled: !searchEnabled, note: searchEnabled ? undefined : '준비 중' },
   ]
   return (
-    <div role="tablist" aria-label="입력 방법" className="grid grid-cols-3 gap-2">
+    <div role="tablist" aria-label="입력 방법" className="grid grid-cols-2 gap-2">
       {tabs.map((t) => (
         <button
           key={t.id}
@@ -70,7 +69,6 @@ function ModeTabs({ mode, onChange, kind, searchEnabled }: { mode: Mode; onChang
 export function FoodNewPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const { data: config } = useConfig()
   const [kind, setKind] = useState<FoodKind>('product')
   const [mode, setMode] = useState<Mode>('url')
   const [link, setLink] = useState('')
@@ -160,7 +158,7 @@ export function FoodNewPage() {
       <div className="space-y-5">
         <Card className="space-y-5">
           <Segmented legend="어떤 음식인가요?" value={kind} options={KIND_OPTIONS} onChange={changeKind} />
-          <ModeTabs mode={mode} onChange={setMode} kind={kind} searchEnabled={!!config?.productSearch.enabled} />
+          <ModeTabs mode={mode} onChange={setMode} kind={kind} />
 
           {mode === 'url' && (
             <form onSubmit={onImport} className="space-y-2">
@@ -192,7 +190,6 @@ export function FoodNewPage() {
             </form>
           )}
 
-          {mode === 'search' && <p className="text-muted">상품 검색은 준비 중이에요.</p>}
         </Card>
 
         {showForm && (
