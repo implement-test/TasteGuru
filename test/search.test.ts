@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { activeProvider, naverApiHubProvider, naverHubKeys, plainTitle, SearchError, toCandidates } from '../src/worker/import/providers'
+import { cachedSearch, normalizeQuery } from '../src/worker/import/search-cache'
+import type { ProductCandidate } from '../src/shared/food'
+import type { ProductSearchProvider } from '../src/worker/import/providers'
 import { call, memberSession } from './helpers'
 
 const keyed = (extra: Partial<Env> = {}) => ({ NAVER_HUB_CLIENT_ID: 'hub-id', NAVER_HUB_CLIENT_SECRET: 'hub-secret', ...extra }) as Env
@@ -119,5 +122,55 @@ describe('GET /api/import/search', () => {
     const res = await call(`/api/import/search?q=${encodeURIComponent('신라면')}`, { cookie: member })
     expect(res.status).toBe(501)
     expect(((await res.json()) as { error: string }).error).toBe('search_not_configured')
+  })
+})
+
+describe('검색 결과 하루 캐시', () => {
+  const item: ProductCandidate = { name: '신라면', brand: null, image: 'https://x.com/a.jpg', thumbnail: null, price: null, url: null, provider: 'fake' }
+
+  async function setup() {
+    const queries: string[] = []
+    let fail = false
+    const provider: ProductSearchProvider = {
+      id: 'fake',
+      label: '가짜',
+      isEnabled: () => true,
+      async search(q) {
+        queries.push(q)
+        if (fail) throw new SearchError('down')
+        return [item]
+      },
+    }
+    const cache = await caches.open(`search-test-${crypto.randomUUID()}`)
+    const pending: Promise<unknown>[] = []
+    const run = async (q: string) => {
+      const r = await cachedSearch(provider, q, {} as Env, { origin: 'https://tasteguru.test', waitUntil: (p) => pending.push(p), cache })
+      await Promise.all(pending)
+      return r
+    }
+    return { queries, run, setFail: (v: boolean) => (fail = v) }
+  }
+
+  it('검색어 정규화: 공백·대소문자', () => {
+    expect(normalizeQuery('  Bibigo   왕교자 ')).toBe('bibigo 왕교자')
+    expect(normalizeQuery('가'.repeat(80))).toHaveLength(50)
+  })
+
+  it('같은 검색어는 두 번째부터 외부 API를 부르지 않는다', async () => {
+    const { queries, run } = await setup()
+    expect(await run('신라면')).toEqual({ items: [item], cached: false })
+    expect(await run('  신라면 ')).toEqual({ items: [item], cached: true })
+    expect(queries).toEqual(['신라면'])
+    await run('진라면')
+    expect(queries).toEqual(['신라면', '진라면'])
+  })
+
+  it('검색 실패는 캐시하지 않는다', async () => {
+    const { queries, run, setFail } = await setup()
+    setFail(true)
+    await expect(run('신라면')).rejects.toThrow(SearchError)
+    setFail(false)
+    expect((await run('신라면')).cached).toBe(false)
+    expect(queries).toHaveLength(2)
   })
 })

@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import type { ProductCandidate } from '../../shared/food'
 import { fail, type AppEnv } from '../app'
 import { activeProvider, SearchError } from '../import/providers'
+import { cachedSearch } from '../import/search-cache'
 import { ImportError, importFromUrl } from '../import/url'
 
 export const imports = new Hono<AppEnv>()
@@ -17,15 +18,19 @@ imports.post('/import/url', async (c) => {
   }
 })
 
-// API 상품 검색: 공급자 키가 없으면 501, 외부 API 실패는 502
+// API 상품 검색: 공급자 키가 없으면 501, 외부 API 실패는 502. 같은 검색어는 하루 캐시
 imports.get('/import/search', async (c) => {
   const provider = activeProvider(c.env)
   if (!provider) return fail(c, 501, 'search_not_configured', '상품 검색은 준비 중이에요.')
   const q = c.req.query('q')?.trim()
   if (!q) return fail(c, 400, 'invalid_query', '검색어를 입력해 주세요.')
   try {
-    const items: ProductCandidate[] = await provider.search(q.slice(0, 50), c.env)
-    return c.json({ provider: provider.id, items })
+    const { items, cached } = await cachedSearch(provider, q, c.env, {
+      origin: new URL(c.req.url).origin,
+      waitUntil: (p) => c.executionCtx.waitUntil(p),
+    })
+    const body: { provider: string; items: ProductCandidate[] } = { provider: provider.id, items }
+    return c.json(body, 200, { 'x-search-cache': cached ? 'hit' : 'miss' })
   } catch (e) {
     if (!(e instanceof SearchError)) throw e
     console.error('product search failed', provider.id, e.message)
