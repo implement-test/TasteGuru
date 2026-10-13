@@ -61,6 +61,7 @@ npm run dev                           # http://localhost:5173
 | `BETTER_AUTH_SECRET` | 세션 서명 키 |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | 구글 OAuth (리디렉션 URI: `https://tasteguru.nogamenogain.com/api/auth/callback/google`) |
 | `ADMIN_EMAIL` | 첫 관리자가 될 이메일. 다른 사람이 먼저 가입해 관리자가 되는 것을 막는다 |
+| `NAVER_HUB_CLIENT_ID`, `NAVER_HUB_CLIENT_SECRET` | 상품 검색(NAVER API HUB 이미지 검색). 네이버 클라우드 플랫폼 Application 키, 이미지 검색 API 사용 설정 필요. `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 이름도 인식. 없으면 "상품 검색" 탭이 준비 중으로 꺼짐 |
 
 ## 디자인 규칙
 
