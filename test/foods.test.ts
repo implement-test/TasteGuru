@@ -37,6 +37,9 @@ describe('음식 등록', () => {
     expect((await createFood(member, { kind: 'product', name: '만두', price: -1 })).res.status).toBe(400)
     expect((await createFood(member, { kind: 'product', name: '만두', sourceUrl: 'javascript:alert(1)' })).res.status).toBe(400)
     expect((await createFood(member, { kind: 'pizza', name: '만두' })).res.status).toBe(400)
+    // 상품 검색(API) 입력은 v0.2.4에서 제거
+    expect((await createFood(member, { kind: 'product', name: '만두', source: 'api' })).res.status).toBe(400)
+    expect((await call('/api/import/search?q=만두', { cookie: member })).status).toBe(404)
   })
 
   it('URL에서 가져온 정보와 쇼핑몰 사진으로 등록', async () => {

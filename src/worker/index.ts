@@ -5,7 +5,6 @@ import { normalizeNickname, type AppConfig, type Me, type Role } from '../shared
 import { fail, requireUser, type AppEnv, type SessionUser } from './app'
 import { createAuth, INVITE_COOKIE } from './auth'
 import { getDb, schema } from './db'
-import { activeProvider } from './import/providers'
 import { admin } from './routes/admin'
 import { foods } from './routes/foods'
 import { images } from './routes/images'
@@ -24,10 +23,8 @@ const toMe = (u: SessionUser): Me => ({
 app.on(['GET', 'POST'], '/auth/*', (c) => createAuth(c.env).handler(c.req.raw))
 
 app.get('/config', (c) => {
-  const provider = activeProvider(c.env)
   const config: AppConfig = {
     googleEnabled: !!(c.env.GOOGLE_CLIENT_ID && c.env.GOOGLE_CLIENT_SECRET),
-    productSearch: { enabled: !!provider, label: provider?.label ?? null },
   }
   return c.json(config)
 })

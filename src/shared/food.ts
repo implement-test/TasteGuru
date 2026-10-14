@@ -1,5 +1,6 @@
 // 음식·평가 관련 공용 타입과 검증 (화면·서버 공용)
 export type FoodKind = 'product' | 'meal_kit' | 'delivery'
+/** 'api'는 v0.2.1~v0.2.2 상품 검색으로 입력한 기존 기록용. 새로 입력할 수는 없다 */
 export type FoodSource = 'manual' | 'url' | 'api'
 
 export const FOOD_KIND_LABEL: Record<FoodKind, string> = {
@@ -165,7 +166,7 @@ export function validateFoodInput(raw: unknown, partial = false): Validated<Part
     else return { ok: false, message: '구매 링크는 http(s) 주소로 입력해 주세요.' }
   }
   if (r.source !== undefined) {
-    if (r.source !== 'manual' && r.source !== 'url' && r.source !== 'api') return { ok: false, message: '입력 출처가 올바르지 않아요.' }
+    if (r.source !== 'manual' && r.source !== 'url') return { ok: false, message: '입력 출처가 올바르지 않아요.' }
     out.source = r.source
   }
   if (r.externalImages !== undefined) {
@@ -199,14 +200,4 @@ export function validateRatingInput(raw: unknown, attributeIds: string[]): Valid
   const memo = str(r.memo ?? null, MEMO_MAX)
   if (memo === undefined) return { ok: false, message: `메모는 ${MEMO_MAX}자까지 쓸 수 있어요.` }
   return { ok: true, value: { overall, scores, memo } }
-}
-
-/** API 검색 결과 후보 (초안) */
-export interface ProductCandidate {
-  name: string
-  brand: string | null
-  image: string | null
-  price: number | null
-  url: string | null
-  provider: string
 }
